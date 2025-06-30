@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Notas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para a fonte Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Esconder a seta de incremento/decremento em inputs numéricos */
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-200 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl transform transition-all duration-300 hover:scale-[1.01]">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Controle de Notas</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- 1º Bimestre Grades -->
+            <div class="flex flex-col">
+                <label class="text-gray-700 font-medium mb-2">1º Bimestre:</label>
+                <div class="flex space-x-4">
+                    <input type="number" id="nota1_sem1" placeholder="Nota ED1" min="0" max="10" step="0.1" value="8.0"
+                           class="w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200">
+                    <input type="number" id="nota2_sem1" placeholder="Nota AV1" min="0" max="10" step="0.1" value="5.0"
+                           class="w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200">
+                </div>
+            </div>
+
+            <!-- 2º Bimestre Grades -->
+            <div class="flex flex-col">
+                <label class="text-gray-700 font-medium mb-2">2º Bimestre:</label>
+                <div class="flex space-x-4">
+                    <input type="number" id="nota1_sem2" placeholder="Nota ED2" min="0" max="10" step="0.1" value="8.5"
+                           class="w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200">
+                    <input type="number" id="nota2_sem2" placeholder="Nota AV2" min="0" max="10" step="0.1" value="6.0"
+                           class="w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200">
+                </div>
+            </div>
+
+            <!-- Nota do Exame Final -->
+            <div class="flex flex-col md:col-span-2">
+                <label for="nota_exame_final" class="text-gray-700 font-medium mb-1">Nota do Exame Final (Opcional):</label>
+                <input type="number" id="nota_exame_final" placeholder="Insira a nota do exame final (se aplicável)" min="0" max="10" step="0.1"
+                       class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200">
+            </div>
+        </div>
+
+        <!-- Botão Calcular -->
+        <button id="calcularBtn"
+                class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
+            Calcular Notas
+        </button>
+
+        <!-- Resultados -->
+        <div class="mt-8 border-t border-gray-200 pt-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Resultados:</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <span class="text-gray-700 font-medium">Média Ponderada 1º Bimestre:</span>
+                    <span id="media_sem1" class="text-blue-700 font-bold text-lg">-</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <span class="text-gray-700 font-medium">Média Ponderada 2º Bimestre:</span>
+                    <span id="media_sem2" class="text-blue-700 font-bold text-lg">-</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-md">
+                    <span class="text-gray-800 font-semibold">Média Final (Anual):</span>
+                    <span id="media_final" class="text-purple-700 font-extrabold text-xl">-</span>
+                </div>
+                <!-- Nova linha para a Nota do Exame Final -->
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <span class="text-gray-700 font-medium">Nota do Exame Final:</span>
+                    <span id="exame_final_display" class="text-gray-700 font-bold text-lg">-</span>
+                </div>
+                <div class="flex justify-between items-center p-4 rounded-lg shadow-sm" id="status_container">
+                    <span class="text-gray-700 font-medium">Status:</span>
+                    <span id="status" class="font-bold text-lg">-</span>
+                </div>
+                <div class="flex justify-between items-center bg-yellow-50 p-4 rounded-lg shadow-sm">
+                    <span class="text-gray-700 font-medium">Nota Necessária no Exame Final:</span>
+                    <span id="nota_recuperacao" class="text-red-600 font-bold text-lg">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para calcular a média ponderada
+        function calcularMediaPonderada(nota1, nota2) {
+            return (nota1 * 0.3) + (nota2 * 0.7);
+        }
+
+        // Função para realizar o cálculo e atualizar a UI
+        function realizarCalculo() {
+            // Obter os valores das notas
+            const nota1_sem1 = parseFloat(document.getElementById('nota1_sem1').value);
+            const nota2_sem1 = parseFloat(document.getElementById('nota2_sem1').value);
+            const nota1_sem2 = parseFloat(document.getElementById('nota1_sem2').value);
+            const nota2_sem2 = parseFloat(document.getElementById('nota2_sem2').value);
+            const nota_exame_final_input = document.getElementById('nota_exame_final').value;
+            const nota_exame_final = nota_exame_final_input === '' ? null : parseFloat(nota_exame_final_input); // Trata campo vazio como null
+
+            // Validar se as notas bimestrais foram inseridas e são válidas
+            if (isNaN(nota1_sem1) || isNaN(nota2_sem1) || isNaN(nota1_sem2) || isNaN(nota2_sem2) ||
+                nota1_sem1 < 0 || nota1_sem1 > 10 ||
+                nota2_sem1 < 0 || nota2_sem1 > 10 ||
+                nota1_sem2 < 0 || nota1_sem2 > 10 ||
+                nota2_sem2 < 0 || nota2_sem2 > 10) {
+                // Exibir mensagem de erro ou alerta visual para notas bimestrais
+                document.getElementById('media_sem1').textContent = 'Erro';
+                document.getElementById('media_sem2').textContent = 'Erro';
+                document.getElementById('media_final').textContent = 'Erro';
+                document.getElementById('exame_final_display').textContent = 'Erro'; // Atualiza o novo campo também
+                document.getElementById('status').textContent = 'Preencha todas as notas bimestrais (0-10)';
+                document.getElementById('status_container').className = 'flex justify-between items-center p-4 rounded-lg shadow-sm bg-red-100 text-red-700';
+                document.getElementById('nota_recuperacao').textContent = 'Erro';
+                return; // Sair da função se houver erro nas notas bimestrais
+            }
+
+            // Validar Nota do Exame Final se for preenchida
+            if (nota_exame_final !== null && (isNaN(nota_exame_final) || nota_exame_final < 0 || nota_exame_final > 10)) {
+                document.getElementById('media_sem1').textContent = 'Erro';
+                document.getElementById('media_sem2').textContent = 'Erro';
+                document.getElementById('media_final').textContent = 'Erro';
+                document.getElementById('exame_final_display').textContent = 'Erro'; // Atualiza o novo campo também
+                document.getElementById('status').textContent = 'Nota do Exame Final inválida (0-10)';
+                document.getElementById('status_container').className = 'flex justify-between items-center p-4 rounded-lg shadow-sm bg-red-100 text-red-700';
+                document.getElementById('nota_recuperacao').textContent = 'Erro';
+                return;
+            }
+
+            // Calcular médias ponderadas dos bimestres
+            const media_sem1 = calcularMediaPonderada(nota1_sem1, nota2_sem1);
+            const media_sem2 = calcularMediaPonderada(nota1_sem2, nota2_sem2);
+
+            // Calcular média final anual como média ponderada simples (0.5 peso para cada bimestre)
+            const media_final = (media_sem1 * 0.5) + (media_sem2 * 0.5);
+
+            // Determinar status e nota necessária no Exame Final
+            let status = "";
+            let statusColorClass = "";
+            let nota_exame_final_necessaria = "-"; // Renomeado para clareza
+
+            if (media_final >= 7) {
+                status = "Aprovado";
+                statusColorClass = "bg-green-100 text-green-700";
+            } else {
+                // Se a média final for menor que 7, verifica o exame final
+                if (nota_exame_final !== null) {
+                    // Se a nota do exame final foi inserida
+                    const NOTA_MINIMA_EXAME_FINAL = 4.0; // Usando 4.0 como o limiar baseado no seu exemplo de 4.4
+                    if (nota_exame_final >= NOTA_MINIMA_EXAME_FINAL) {
+                        status = "Aprovado (Exame Final)";
+                        statusColorClass = "bg-green-100 text-green-700";
+                    } else {
+                        status = "Reprovado (Exame Final Insuficiente)";
+                        statusColorClass = "bg-red-100 text-red-700";
+                    }
+                    nota_exame_final_necessaria = "-"; // Não precisa de cálculo se o exame final já foi feito
+                } else {
+                    // Se a nota do exame final NÃO foi inserida, calcula o que seria necessário
+                    status = "Reprovado"; // Status inicial antes do Exame Final
+                    statusColorClass = "bg-red-100 text-red-700";
+
+                    let necessaria;
+                    if (media_sem1 <= media_sem2) {
+                        // Se a média do 1º bimestre for menor ou igual, o Exame Final a substitui
+                        // Queremos (nota_exame_final + media_sem2) / 2 = 7 => nota_exame_final + media_sem2 = 14
+                        necessaria = 14 - media_sem2;
+                    } else {
+                        // Se a média do 2º bimestre for menor, o Exame Final a substitui
+                        // Queremos (media_sem1 + nota_exame_final) / 2 = 7 => media_sem1 + nota_exame_final = 14
+                        necessaria = 14 - media_sem1;
+                    }
+
+                    if (necessaria <= 10) {
+                        nota_exame_final_necessaria = necessaria.toFixed(2); // Arredonda para 2 casas decimais
+                    } else {
+                        nota_exame_final_necessaria = "Verificar (Muito Alta)"; // Se for maior que 10
+                    }
+                }
+            }
+
+            // Atualizar os elementos HTML com os resultados
+            document.getElementById('media_sem1').textContent = media_sem1.toFixed(2);
+            document.getElementById('media_sem2').textContent = media_sem2.toFixed(2);
+            document.getElementById('media_final').textContent = media_final.toFixed(2);
+            // Atualiza a nova linha com a nota do exame final
+            document.getElementById('exame_final_display').textContent = nota_exame_final !== null ? nota_exame_final.toFixed(2) : 'Não realizada';
+            document.getElementById('status').textContent = status;
+            document.getElementById('status_container').className = `flex justify-between items-center p-4 rounded-lg shadow-sm ${statusColorClass}`;
+            document.getElementById('nota_recuperacao').textContent = nota_exame_final_necessaria; // Usa a nova variável
+        }
+
+        // Event Listener para o botão de cálculo
+        document.getElementById('calcularBtn').addEventListener('click', realizarCalculo);
+
+        // Adicionar validação de entrada em tempo real para as notas
+        const noteInputs = document.querySelectorAll('input[type="number"]');
+        noteInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                let value = parseFloat(this.value);
+                // Permite que o campo de exame final fique vazio
+                if (this.id === 'nota_exame_final' && this.value === '') {
+                    // Não faz nada, permite o campo vazio
+                } else if (value < 0) {
+                    this.value = 0;
+                } else if (value > 10) {
+                    this.value = 10;
+                }
+            });
+        });
+
+        // Chamar a função de cálculo automaticamente quando a página carregar
+        window.onload = realizarCalculo;
+    </script>
+</body>
+</html>
